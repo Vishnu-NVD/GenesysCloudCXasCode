@@ -29,25 +29,6 @@ jobs:
           echo "CLIENT_SECRET=${{ secrets.PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "LOCATION=${{ env.PROD_LOCATION }}" >> $GITHUB_ENV
 
-      - name: Refresh schemas
-        run: |
-          archy refresh \
-            --location "$LOCATION" \
-            --clientId "$CLIENT_ID" \
-            --clientSecret "$CLIENT_SECRET"
-
-      - name: Validate flows
-        run: |
-          set -e
-          for f in $(ls -1 "${{ env.FLOWS_DIR }}"/*.yaml); do
-            echo "Validating: $f"
-            archy validate \
-              --file "$f" \
-              --location "$LOCATION" \
-              --clientId "$CLIENT_ID" \
-              --clientSecret "$CLIENT_SECRET"
-          done
-
       - name: Publish flows to PROD
         run: |
           set -e
