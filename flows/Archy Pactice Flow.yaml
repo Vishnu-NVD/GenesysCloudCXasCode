@@ -1,5 +1,5 @@
 inboundShortMessage:
-  name: Archy Practice Flow_1
+  name: Archy Practice Flow
   description: "Archy Practice Flow"
   division: Home
   startUpRef: "/inboundShortMessage/states/state[Initial State_11]"
