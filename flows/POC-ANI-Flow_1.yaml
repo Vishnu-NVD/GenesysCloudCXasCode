@@ -1,6 +1,6 @@
 inboundCall:
-  name: POC-ANI-Flow_2
-  description: POC-ANI-Flow_2
+  name: POC-ANI-Flow_1
+  description: POC-ANI-Flow_1
   division: Home
   startUpRef: "/inboundCall/tasks/task[New Task 1_13]"
   defaultLanguage: en-us
