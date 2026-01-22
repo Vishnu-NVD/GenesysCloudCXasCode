@@ -1,5 +1,5 @@
 digitalBot:
-  name: CI-CD_Archy_webchat_Botflow_
+  name: CI-CD_Archy_webchat_Botflow_New
   description: demoflow
   division: Home
   startUpRef: "/digitalBot/bots/bot[Initial Greeting_10]"
