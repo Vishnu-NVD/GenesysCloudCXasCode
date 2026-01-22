@@ -1,0 +1,63 @@
+inboundShortMessage:
+  name: Ci-Cd_Message
+  division: Home
+  startUpRef: "/inboundShortMessage/states/state[Initial State_10]"
+  defaultLanguage: en-us
+  supportedLanguages:
+    en-us:
+      defaultLanguageSkill:
+        noValue: true
+  settingsErrorHandling:
+    errorHandling:
+      queue:
+        targetQueue:
+          lit:
+            name: CxAsCode
+  states:
+    - state:
+        name: Initial State
+        refId: Initial State_10
+        actions:
+          - sendResponse:
+              name: Send Response
+              messageBody:
+                exp: "\"Hello!!!\""
+          - callDigitalBotFlow:
+              name: Call Digital Bot Flow
+              inputText:
+                noValue: true
+              exitReason:
+                noValue: true
+              intent:
+                noValue: true
+              digitalBotFlow:
+                Trekker Bikes Dchatbot:
+                  ver_latestPublished:
+                    inputs:
+                      Slot.FirstName:
+                        noValue: true
+                      Slot.LastName:
+                        noValue: true
+                      Slot.Email:
+                        noValue: true
+                      Slot.Phone:
+                        noValue: true
+                      Slot.Query:
+                        noValue: true
+                      Slot.Price:
+                        noValue: true
+                    outputs:
+                      Slot.FirstName:
+                        noValue: true
+                      Slot.LastName:
+                        noValue: true
+                      Slot.Email:
+                        noValue: true
+                      Slot.Phone:
+                        noValue: true
+                      Slot.Query:
+                        noValue: true
+                      Slot.Price:
+                        noValue: true
+          - disconnect:
+              name: Disconnect
