@@ -40,7 +40,7 @@ jobs:
 
           if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
             echo "Manual run: publishing all flows."
-            CHANGED_FILES=$(find Flows -type f \( -name "*.yaml" -o -name "*.yml" \))
+            CHANGED_FILES=$(find Flows -type f \( -name "*.yaml" -o -name "*.yml" \) -print)
           else
             BASE="${{ github.event.before }}"
             HEAD="${{ github.sha }}"
@@ -63,20 +63,26 @@ jobs:
           echo "$CHANGED_FILES"
 
           echo "changed=true" >> "$GITHUB_OUTPUT"
-          echo "files=$(echo "$CHANGED_FILES" | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+
+          # Write multiline output safely
+          {
+            echo "files<<EOF"
+            echo "$CHANGED_FILES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
           
       - name: Publish changed flows to PROD
         if: steps.changed-flows.outputs.changed == 'true'
+        shell: bash
         run: |
-          set -e
-          for f in ${{ steps.changed-flows.outputs.files }}; do
+          set -euo pipefail
+
+          while IFS= read -r f; do
+            [[ -z "$f" ]] && continue
             echo "Publishing: $f"
             archy publish \
               --file "$f" \
               --location "$LOCATION" \
               --clientId "$CLIENT_ID" \
               --clientSecret "$CLIENT_SECRET"
-          done
-
-      - name: Summary
-        run: echo "Published only changed flows to PROD ($LOCATION)."
+          done <<< "${{ steps.changed-flows.outputs.files }}"
