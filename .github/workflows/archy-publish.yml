@@ -1,22 +1,25 @@
-
 name: Publish Architect Flows (main → PROD)
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # optional manual trigger
+    paths:
+      - 'flows/**'
+  workflow_dispatch:
 
 jobs:
   publish-prod:
     runs-on: ubuntu-latest
     env:
-      ARCHY_VERSION: "latest"    # pin to a version if needed
+      ARCHY_VERSION: "latest"
       FLOWS_DIR: "flows"
       PROD_LOCATION: "usw2.pure.cloud"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # REQUIRED to compare commits
 
       - name: Setup Archy
         uses: stsmdt/setup-genesyscloud-archy@v1
@@ -29,10 +32,34 @@ jobs:
           echo "CLIENT_SECRET=${{ secrets.PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "LOCATION=${{ env.PROD_LOCATION }}" >> $GITHUB_ENV
 
-      - name: Publish flows to PROD
+      - name: Detect changed flows
+        id: changed-flows
         run: |
           set -e
-          for f in $(ls -1 "${{ env.FLOWS_DIR }}"/*.yaml); do
+          git fetch origin main
+
+          # Get changed YAML files under flows/
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD \
+            | grep '^flows/.*\.yaml$' || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No flow changes detected."
+            echo "changed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Changed flow files:"
+          echo "$CHANGED_FILES"
+
+          # Save as space-separated list
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "files=$(echo $CHANGED_FILES | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Publish changed flows to PROD
+        if: steps.changed-flows.outputs.changed == 'true'
+        run: |
+          set -e
+          for f in ${{ steps.changed-flows.outputs.files }}; do
             echo "Publishing: $f"
             archy publish \
               --file "$f" \
@@ -42,4 +69,4 @@ jobs:
           done
 
       - name: Summary
-        run: echo "Published flows in '${{ env.FLOWS_DIR }}' to PROD ($LOCATION)."
+        run: echo "Published only changed flows to PROD ($LOCATION)."
