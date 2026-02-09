@@ -34,27 +34,37 @@ jobs:
 
       - name: Detect changed flows
         id: changed-flows
+        shell: bash
         run: |
-          set -e
-          git fetch origin main
+          set -euo pipefail
 
-          # Get changed YAML files under flows/
-          CHANGED_FILES=$(git diff --name-only origin/main...HEAD \
-            | grep '^Flows/.*\.yaml$' || true)
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "Manual run: publishing all flows."
+            CHANGED_FILES=$(find Flows -type f \( -name "*.yaml" -o -name "*.yml" \))
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
 
-          if [ -z "$CHANGED_FILES" ]; then
+            if [[ "$BASE" == "0000000000000000000000000000000000000000" ]]; then
+              BASE="$(git rev-parse "$HEAD~1")"
+            fi
+
+            CHANGED_FILES=$(git diff --name-only "$BASE" "$HEAD" \
+              | grep -E '^Flows/.*\.ya?ml$' || true)
+          fi
+
+          if [[ -z "${CHANGED_FILES}" ]]; then
             echo "No flow changes detected."
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           echo "Changed flow files:"
           echo "$CHANGED_FILES"
 
-          # Save as space-separated list
-          echo "changed=true" >> $GITHUB_OUTPUT
-          echo "files=$(echo $CHANGED_FILES | tr '\n' ' ')" >> $GITHUB_OUTPUT
-
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "files=$(echo "$CHANGED_FILES" | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+          
       - name: Publish changed flows to PROD
         if: steps.changed-flows.outputs.changed == 'true'
         run: |
