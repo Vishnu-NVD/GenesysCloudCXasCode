@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'flows/**'
+      - 'Flows/**'
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ARCHY_VERSION: "latest"
-      FLOWS_DIR: "flows"
+      FLOWS_DIR: "Flows"
       PROD_LOCATION: "usw2.pure.cloud"
 
     steps:
@@ -40,7 +40,7 @@ jobs:
 
           # Get changed YAML files under flows/
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD \
-            | grep '^flows/.*\.yaml$' || true)
+            | grep '^Flows/.*\.yaml$' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "No flow changes detected."
